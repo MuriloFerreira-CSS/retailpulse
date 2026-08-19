@@ -1,17 +1,36 @@
 from pathlib import Path
+import random
 
 import pandas as pd
 from faker import Faker
 
 
 fake = Faker("pt_BR")
+
 Faker.seed(42)
+random.seed(42)
 
 
 def generate_customers(quantity: int = 5000) -> pd.DataFrame:
     customers = []
 
     for i in range(1, quantity + 1):
+        segment = random.choices(
+            population=[
+                "New",
+                "Returning",
+                "Loyal",
+                "High Value"
+            ],
+            weights=[
+                40,
+                35,
+                20,
+                5
+            ],
+            k=1
+        )[0]
+
         customer = {
             "customer_id": f"C{i:05d}",
             "name": fake.name(),
@@ -26,6 +45,7 @@ def generate_customers(quantity: int = 5000) -> pd.DataFrame:
                 start_date="-3y",
                 end_date="today"
             ),
+            "customer_segment": segment,
         }
 
         customers.append(customer)

@@ -29,23 +29,38 @@ TRAFFIC_SOURCES = [
 TRAFFIC_WEIGHTS = [30, 20, 18, 15, 10, 7]
 
 
-def generate_sessions(customers_path: str = "data/raw/customers.csv") -> pd.DataFrame:
+def generate_sessions(
+    customers_path: str = "data/raw/customers.csv"
+) -> pd.DataFrame:
+
     customers = pd.read_csv(customers_path)
 
     sessions = []
     session_counter = 1
+    today = pd.Timestamp.today().normalize()
 
     for _, customer in customers.iterrows():
         segment = customer["customer_segment"]
 
         min_sessions, max_sessions = SESSION_RANGES[segment]
-        number_of_sessions = random.randint(min_sessions, max_sessions)
 
-        signup_date = pd.to_datetime(customer["signup_date"])
+        number_of_sessions = random.randint(
+            min_sessions,
+            max_sessions
+        )
+
+        signup_date = pd.to_datetime(
+            customer["signup_date"]
+        )
+
+        days_since_signup = max(
+            (today - signup_date).days,
+            0
+        )
 
         for _ in range(number_of_sessions):
             session_start = signup_date + pd.to_timedelta(
-                random.randint(0, 365),
+                random.randint(0, days_since_signup),
                 unit="D"
             )
 
@@ -61,7 +76,11 @@ def generate_sessions(customers_path: str = "data/raw/customers.csv") -> pd.Data
                 k=1
             )[0]
 
-            session_duration_seconds = random.randint(20, 1800)
+            session_duration_seconds = random.randint(
+                20,
+                1800
+            )
+
             pages_viewed = random.randint(1, 20)
 
             session = {
@@ -83,8 +102,14 @@ def generate_sessions(customers_path: str = "data/raw/customers.csv") -> pd.Data
 if __name__ == "__main__":
     df_sessions = generate_sessions()
 
-    output_path = Path("data/raw/sessions.csv")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path = Path(
+        "data/raw/sessions.csv"
+    )
+
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
     df_sessions.to_csv(
         output_path,
@@ -92,5 +117,8 @@ if __name__ == "__main__":
         encoding="utf-8-sig"
     )
 
-    print(f"{len(df_sessions)} sessões geradas com sucesso.")
+    print(
+        f"{len(df_sessions)} sessões geradas com sucesso."
+    )
+
     print(df_sessions.head())
